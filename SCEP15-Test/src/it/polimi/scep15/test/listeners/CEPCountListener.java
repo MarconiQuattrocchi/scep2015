@@ -1,3 +1,7 @@
+package it.polimi.scep15.test.listeners;
+import it.polimi.scep15.test.events.CountEvent;
+import it.polimi.scep15.test.events.RankEvent;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,10 +24,17 @@ public class CEPCountListener implements UpdateListener {
 
 		if(!rank.isEmpty()){
 			RankEvent ev = new RankEvent();
-			ev.rank=rank;
-			ev.counts=counts;
-			System.out.println("Sending rank: "+ev);
+			ev.setRank(rank);
+			ev.setCounts(counts);
+			//System.out.println("Sending rank: "+ev);
 			cepRT.sendEvent(ev);
 		}
+	}
+	
+	public EPRuntime getCepRT() {
+		return cepRT;
+	}
+	public void setCepRT(EPRuntime cepRT) {
+		this.cepRT = cepRT;
 	}
 }

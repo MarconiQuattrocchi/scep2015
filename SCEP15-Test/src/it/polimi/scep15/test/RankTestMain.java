@@ -1,3 +1,12 @@
+package it.polimi.scep15.test;
+import it.polimi.scep15.test.events.CountEvent;
+import it.polimi.scep15.test.events.RankEvent;
+import it.polimi.scep15.test.events.RanksEvent;
+import it.polimi.scep15.test.events.WordEvent;
+import it.polimi.scep15.test.listeners.CEPCountListener;
+import it.polimi.scep15.test.listeners.CEPRankListener;
+
+import java.util.ArrayList;
 import java.util.Random;
 
 import com.espertech.esper.client.Configuration;
@@ -7,7 +16,7 @@ import com.espertech.esper.client.EPServiceProvider;
 import com.espertech.esper.client.EPServiceProviderManager;
 import com.espertech.esper.client.EPStatement;
 
-public class RankTest {
+public class RankTestMain {
 
 	private static Random generator = new Random();
 	
@@ -15,12 +24,19 @@ public class RankTest {
 		String[] ss = {"a", "b"};
 		int i = generator.nextInt(ss.length);
 		WordEvent e = new WordEvent();
-		e.word=ss[i];
+		e.setWord(ss[i]);
 		System.out.println("Sending Event:" + e);
 		cepRT.sendEvent(e);
 		Thread.sleep(1000);
 	}
 
+	private static void generateEmptyRank(EPRuntime cepRT) {
+		RankEvent r = new RankEvent();
+		r.setCounts(new ArrayList<Long>());
+		r.setRank(new ArrayList<String>());
+		cepRT.sendEvent(r);
+	}
+	
 	public static void main(String[] args) throws InterruptedException {
 		
 		Configuration cepConfig = null;
@@ -50,24 +66,26 @@ public class RankTest {
 		EPStatement cepStatement =	cepAdm.createEPL(query);
 		
 		CEPCountListener cepL = new CEPCountListener();
-		cepL.cepRT = cepRT;
+		cepL.setCepRT(cepRT);
 		cepStatement.addListener(cepL);
 		
 		cepAdm.createEPL(query2);
 		
 		EPStatement cepStatement3 =	cepAdm.createEPL(query3);
 		CEPRankListener cepL3 = new CEPRankListener();
-		cepL3.cepRT = cepRT;
+		cepL3.setCepRT(cepRT);
 		cepStatement3.addListener(cepL3);	
-
+		
+		generateEmptyRank(cepRT);
+		
 		for (int i = 0; i < 100; i++) {
 			generateRandomWords(cepRT);
 		}
 		
-		// We wait for a bit to let all window close
 		Thread.sleep(100000);
 		
 	}
+
 	
 }
 

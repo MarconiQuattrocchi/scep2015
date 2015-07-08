@@ -1,3 +1,4 @@
+package it.polimi.scep15.test.events;
 
 
 public class WordEvent {

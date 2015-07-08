@@ -1,3 +1,4 @@
+package it.polimi.scep15.test.events;
 import java.util.List;
 
 
@@ -33,6 +34,6 @@ public class RanksEvent {
 		this.currentCounts = currentCounts;
 	}
 	public String toString(){
-		return "{"+currentRank+","+currentCounts+","+prevRank+","+prevCounts+"}";
+		return "New Rank: "+currentRank+"   (currentCounts: "+currentCounts+", previousRank: "+prevRank+")"; //, previousCounts: "+prevCounts+")";
 	}
 }
