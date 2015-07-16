@@ -79,8 +79,6 @@ line = file.readline()
 while line:
 	print "Sending entry:\n", entry,"\n"
 	s.send(entry) 
-	data = ''
- 	data = s.recv(1024).decode()
  	line = file.readline()
  	if line:
  		old_ts = ts
