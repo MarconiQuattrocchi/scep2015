@@ -41,18 +41,7 @@ def process_line(line):
 	'tolls_amount'         : float(match.group(16)),
 	'total_amount'         : float(match.group(17))}
 
-	delta = dict['dropoff_datetime'] - dict['pickup_datetime']
-	new_dropoff = datetime.datetime.now()
-	new_pickup = new_dropoff - delta
-	new_line = match.group(1)
-	for i in range(2,18):
-		if i == 3:
-			new_line += ","+to_timestring(new_pickup)
-		elif i == 4:
-			new_line += ","+to_timestring(new_dropoff)
-		else:
-			new_line += ","+match.group(i)
-	return (new_line, dict['dropoff_datetime'])
+	return dict
 
 print "Loading configuration"
 
@@ -60,6 +49,7 @@ config = {}
 execfile("client.conf", config) 
 host = config["ip"]
 port = config["port"]
+delta_enabled = config["delta"]
 
 print "Initizialing connection to host:", host, "at port:",port
 
@@ -73,18 +63,19 @@ file = fileinput.input(file_path)
 print "Reading file at path:", file_path,"\n"
 
 
-line = file.readline()		
-(entry, ts)  = process_line(line)
+line = file.readline()	
+entry  = process_line(line)
 
 while line:
 	print "Sending entry:\n", entry,"\n"
-	s.send(entry) 
+	s.send(line) 
+	old_ts = entry['dropoff_datetime']
  	line = file.readline()
  	if line:
- 		old_ts = ts
- 		(entry, ts)  = process_line(line)
+ 		entry=process_line(line)
+ 		ts = entry['dropoff_datetime']
  		delta = (ts-old_ts).total_seconds()
- 		if delta > 0:
+ 		if delta > 0 and delta_enabled:
  			print "Waiting", delta, "for the next entry\n"
  			time.sleep(delta)
  	else:
