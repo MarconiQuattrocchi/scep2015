@@ -1,13 +1,14 @@
-package it.polimi.scep15.test;
-import it.polimi.scep15.test.events.CountEvent;
-import it.polimi.scep15.test.events.RankEvent;
-import it.polimi.scep15.test.events.RanksEvent;
-import it.polimi.scep15.test.events.WordEvent;
-import it.polimi.scep15.test.listeners.CEPCountListener;
-import it.polimi.scep15.test.listeners.CEPRankListener;
-
+package it.polimi.scep15.stream.main;
 import java.util.ArrayList;
-import java.util.Random;
+
+import it.polimi.scep15.net.SocketDataReceiver;
+import it.polimi.scep15.stream.events.CountEvent;
+import it.polimi.scep15.stream.events.EntryEvent;
+import it.polimi.scep15.stream.events.RankEvent;
+import it.polimi.scep15.stream.events.RanksEvent;
+import it.polimi.scep15.stream.listeners.CEPCountListener;
+import it.polimi.scep15.stream.listeners.CEPRankListener;
+import it.polimi.scep15.utils.SourceDataListener;
 
 import com.espertech.esper.client.Configuration;
 import com.espertech.esper.client.EPAdministrator;
@@ -16,26 +17,15 @@ import com.espertech.esper.client.EPServiceProvider;
 import com.espertech.esper.client.EPServiceProviderManager;
 import com.espertech.esper.client.EPStatement;
 
-public class RankTestMain {
-
-	private static Random generator = new Random();
+public class StreamMain {
 	
-	public static void generateRandomWords(EPRuntime cepRT) throws InterruptedException{
-		String[] ss = {"a", "b"};
-		int i = generator.nextInt(ss.length);
-		WordEvent e = new WordEvent();
-		e.setWord(ss[i]);
-		System.out.println("Sending Event:" + e);
-		cepRT.sendEvent(e);
-		Thread.sleep(4000);
-	}
-
 	private static void generateEmptyRank(EPRuntime cepRT) {
 		RankEvent r = new RankEvent();
 		r.setCounts(new ArrayList<Long>());
 		r.setRank(new ArrayList<String>());
 		cepRT.sendEvent(r);
 	}
+	
 	
 	public static void main(String[] args) throws InterruptedException {
 		
@@ -45,17 +35,20 @@ public class RankTestMain {
 		String query3 = null;
 
 		cepConfig = new Configuration();
-		cepConfig.addEventType("WordEvent", WordEvent.class.getName());
+		cepConfig.addEventType("EntryEvent", EntryEvent.class.getName());
 		cepConfig.addEventType("RankEvent", RankEvent.class.getName());
 		cepConfig.addEventType("RanksEvent", RanksEvent.class.getName());
 
 		cepConfig.addEventType("CountEvent", CountEvent.class.getName());
 
-		query = "insert into CountEvent select count(*) as count, word as word from WordEvent.win:time(2 sec) "
-				+ "group by word output all every 1 events order by count(*) desc, word asc limit 10";
+		query = "insert into CountEvent select count(*) as count, pickupAreaCode as pickupAreaCode, dropoffAreaCode as dropoffAreaCode, "
+				+ "pickupDate as pickupDate, dropoffDate as dropoffDate from EntryEvent.win:time(5 sec) "
+				+ "where pickupAreaX>0 and pickupAreaX<=500 and pickupAreaY>0 and pickupAreaY<=500 and "
+				+ "dropoffAreaX>0 and dropoffAreaX<=500 and dropoffAreaY>0 and dropoffAreaY<=500 "
+				+ "group by dropoffAreaCode output all every 1 second order by count(*) desc, dropoffAreaCode asc limit 10";
 		
-		query2 = "insert into RanksEvent select prev(rank) as prevRank, rank as currentRank, prev(counts) as prevCounts, "
-				+ "counts as currentCounts from RankEvent.win:length(2)";
+		query2 = "insert into RanksEvent select prev(rank) as prevRank, rank as currentRank, "
+				+ "counts as currentCounts, pickupAreaCodes as pickupAreaCodes from RankEvent.win:length(2)";
 		
 		query3 = "select * from RanksEvent.win:length(1) where currentRank != prevRank output all every 1 events";
 
@@ -75,15 +68,14 @@ public class RankTestMain {
 		CEPRankListener cepL3 = new CEPRankListener();
 		cepL3.setCepRT(cepRT);
 		cepStatement3.addListener(cepL3);	
-		
+
 		generateEmptyRank(cepRT);
-		
-		for (int i = 0; i < 100; i++) {
-			generateRandomWords(cepRT);
-		}
-		
-		Thread.sleep(100000);
-		
+
+		SocketDataReceiver socketServer = new SocketDataReceiver();
+		SourceDataListener dataListener=new SourceDataListener();
+		dataListener.setCepRT(cepRT);
+		socketServer.setListener(dataListener);
+		new Thread(socketServer).start();		
 	}
 
 	

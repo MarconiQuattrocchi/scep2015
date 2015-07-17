@@ -1,6 +1,6 @@
-package it.polimi.scep15.test.listeners;
-import it.polimi.scep15.test.events.CountEvent;
-import it.polimi.scep15.test.events.RankEvent;
+package it.polimi.scep15.stream.listeners;
+import it.polimi.scep15.stream.events.CountEvent;
+import it.polimi.scep15.stream.events.RankEvent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,16 +16,20 @@ public class CEPCountListener implements UpdateListener {
 		
 		List<String> rank = new ArrayList<String>();
 		List<Long> counts = new ArrayList<Long>();
+		List<String> pickupAreaCodes = new ArrayList<String>();
 		
 		for (EventBean e : newData) {
-				rank.add(((CountEvent)e.getUnderlying()).getWord());
-				counts.add(((CountEvent)e.getUnderlying()).getCount());
+				CountEvent c = (CountEvent) e.getUnderlying();
+				rank.add(c.getDropoffAreaCode());
+				pickupAreaCodes.add(c.getPickupAreaCode());
+				counts.add(c.getCount());
 		}
 
 		if(!rank.isEmpty()){
 			RankEvent ev = new RankEvent();
 			ev.setRank(rank);
 			ev.setCounts(counts);
+			ev.setPickupAreaCodes(pickupAreaCodes);
 			//System.out.println("Sending rank: "+ev);
 			cepRT.sendEvent(ev);
 		}
