@@ -1,23 +1,28 @@
 package it.polimi.scep15.utils;
 
+import it.polimi.scep15.net.RemoteUpdateListener;
+import it.polimi.scep15.stream.events.EntryEvent;
+
 import java.text.ParseException;
 
 import com.espertech.esper.client.EPRuntime;
 
-import it.polimi.scep15.net.RemoteUpdateListener;
-import it.polimi.scep15.stream.events.EntryEvent;
-
-
 
 public class SourceDataListener implements RemoteUpdateListener {
 	
+
 	private EPRuntime cepRT;
-	
+
 	@Override
-	public void update(String data) {
-		System.out.println("Received entry: "+data);
+	public synchronized void update(String data) {
+		//System.out.println(i+") Received entry: "+data);
 		try {
+			
+			
 			EntryEvent e = EntryParser.parse(data);
+			
+			//System.out.println(i+") Received entry: "+data);
+
 			if(cepRT!=null){
 				cepRT.sendEvent(e);
 			}

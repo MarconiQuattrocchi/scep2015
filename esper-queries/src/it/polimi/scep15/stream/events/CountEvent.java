@@ -7,8 +7,8 @@ public class CountEvent {
 	private long count;
 	private Date pickupDate;
 	private Date dropoffDate;
-	private String pickupAreaCode;
-	private String dropoffAreaCode;
+	private long ts;
+	private String routeCode;
 	
 	public long getCount() {
 		return count;
@@ -29,19 +29,19 @@ public class CountEvent {
 	public void setDropoffDate(Date dropoffDate) {
 		this.dropoffDate = dropoffDate;
 	}
-	public String getPickupAreaCode() {
-		return pickupAreaCode;
+	public long getTs() {
+		return ts;
 	}
-	public void setPickupAreaCode(String pickupAreaCode) {
-		this.pickupAreaCode = pickupAreaCode;
+	public void setTs(long ts) {
+		this.ts = ts;
 	}
-	public String getDropoffAreaCode() {
-		return dropoffAreaCode;
+	public String getRouteCode() {
+		return routeCode;
 	}
-	public void setDropoffAreaCode(String dropoffAreaCode) {
-		this.dropoffAreaCode = dropoffAreaCode;
+	public void setRouteCode(String routeCode) {
+		this.routeCode = routeCode;
 	}
 	public String toString(){
-		return "event-cont: "+dropoffAreaCode+"-"+count;
+		return "event-cont: "+routeCode+"-"+count;
 	}
 }

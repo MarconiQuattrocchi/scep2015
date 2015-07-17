@@ -13,11 +13,11 @@ public class CEPRankListener implements UpdateListener {
 
 		for(EventBean e : newData){
 			RanksEvent r = (RanksEvent) e.getUnderlying();
-			String res="pickup_datetime, dropoff_datetime, ";
+			String res=r.getPickupDate().getTime()+", "+r.getDropoffDate().getTime()+", ";
 			for(int i =0; i<r.getCurrentRank().size(); i++){
-				res+=r.getCurrentRank().get(i)+", "+r.getPickupAreaCodes().get(i)+", ";
+				res+=r.getCurrentRank().get(i)+"("+r.getCurrentCounts().get(i)+"), ";
 			}
-			res+="delay";
+			res+=System.currentTimeMillis()-r.getTs();
 			System.out.println("[New Rank] "+res);
 		}
 	}

@@ -41,14 +41,14 @@ public class StreamMain {
 
 		cepConfig.addEventType("CountEvent", CountEvent.class.getName());
 
-		query = "insert into CountEvent select count(*) as count, pickupAreaCode as pickupAreaCode, dropoffAreaCode as dropoffAreaCode, "
-				+ "pickupDate as pickupDate, dropoffDate as dropoffDate from EntryEvent.win:time(5 sec) "
+		query = "insert into CountEvent select count(*) as count, routeCode as routeCode, "
+				+ "pickupDate as pickupDate, dropoffDate as dropoffDate, ts as ts from EntryEvent.win:time(5 sec) "
 				+ "where pickupAreaX>0 and pickupAreaX<=500 and pickupAreaY>0 and pickupAreaY<=500 and "
 				+ "dropoffAreaX>0 and dropoffAreaX<=500 and dropoffAreaY>0 and dropoffAreaY<=500 "
-				+ "group by dropoffAreaCode output all every 1 second order by count(*) desc, dropoffAreaCode asc limit 10";
+				+ "group by routeCode output all every 1 events order by count(*) desc, routeCode desc limit 10";
 		
 		query2 = "insert into RanksEvent select prev(rank) as prevRank, rank as currentRank, "
-				+ "counts as currentCounts, pickupAreaCodes as pickupAreaCodes from RankEvent.win:length(2)";
+				+ "counts as currentCounts, pickupDate as pickupDate, dropoffDate as dropoffDate, ts as ts from RankEvent.win:length(2)";
 		
 		query3 = "select * from RanksEvent.win:length(1) where currentRank != prevRank output all every 1 events";
 

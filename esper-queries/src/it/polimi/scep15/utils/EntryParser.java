@@ -36,12 +36,13 @@ public class EntryParser {
 		e.setDropoffDate(format.parse(groups[3]));
 		e.setTripTime(Integer.parseInt(groups[4]));
 		e.setTripDistance(Float.parseFloat(groups[5]));
-		e.setPickupAreaX(getAreaX(Float.parseFloat(groups[6])));
-		e.setPickupAreaY(getAreaY(Float.parseFloat(groups[7])));
-		e.setPickupAreaCode("("+e.getPickupAreaX()+","+e.getPickupAreaY()+")");
-		e.setDropoffAreaX(getAreaX(Float.parseFloat(groups[8])));
-		e.setDropoffAreaY(getAreaY(Float.parseFloat(groups[9])));
-		e.setDropoffAreaCode("("+e.getDropoffAreaX()+","+e.getDropoffAreaY()+")");
+		e.setPickupAreaY(getAreaY(Float.parseFloat(groups[6])));
+		e.setPickupAreaX(getAreaX(Float.parseFloat(groups[7])));
+		e.setPickupAreaCode("("+e.getPickupAreaX()+"."+e.getPickupAreaY()+")");
+		e.setDropoffAreaY(getAreaY(Float.parseFloat(groups[8])));
+		e.setDropoffAreaX(getAreaX(Float.parseFloat(groups[9])));
+		e.setDropoffAreaCode("("+e.getDropoffAreaX()+"."+e.getDropoffAreaY()+")");
+		e.setRouteCode("["+e.getPickupAreaCode()+","+e.getDropoffAreaCode()+"]");
 		e.setPaymentType(groups[10]);
 		e.setFareAmout(Float.parseFloat(groups[11]));
 		e.setSurcharge(Float.parseFloat(groups[12]));
@@ -49,19 +50,22 @@ public class EntryParser {
 		e.setTipAmount(Float.parseFloat(groups[14]));
 		e.setTollsAmount(Float.parseFloat(groups[15]));
 		e.setTotalAmount(Float.parseFloat(groups[16]));
+		e.setTs(System.currentTimeMillis());
+		
+		
 		
 		return e;
 	}
 
 	
-	private static int getAreaX(float longitude){
+	private static int getAreaY(float longitude){
 	    double f=(longitude - TOP_LEFT_CELL_CENTER.get("longitude") - LONGITUDE_STEP/2 )/LONGITUDE_STEP;
 	    if(f>=0)
 			return (int)f+1;
 		return -1;
 	}
 	
-	private static int getAreaY(float latitude){
+	private static int getAreaX(float latitude){
 		double f = (TOP_LEFT_CELL_CENTER.get("latitude") + LATITUDE_STEP/2 - latitude)/LATITUDE_STEP;
 		if(f>=0)
 			return (int)f+1;

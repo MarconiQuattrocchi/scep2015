@@ -23,7 +23,9 @@ public class EntryEvent {
 	private float tipAmount;
 	private float tollsAmount;
 	private float totalAmount;
-	
+	private String routeCode;
+	private long ts;
+
 	
 	public String getMedallion() {
 		return medallion;
@@ -139,5 +141,17 @@ public class EntryEvent {
 	}
 	public void setTotalAmount(float totalAmount) {
 		this.totalAmount = totalAmount;
+	}
+	public String getRouteCode() {
+		return routeCode;
+	}
+	public void setRouteCode(String routeCode) {
+		this.routeCode = routeCode;
+	}
+	public long getTs() {
+		return ts;
+	}
+	public void setTs(long ts) {
+		this.ts = ts;
 	}
 }
