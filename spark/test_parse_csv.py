@@ -3,6 +3,7 @@ import datetime
 import re
 import os
 import fileinput
+import collections
 #from pyspark.sql import Row
 
 
@@ -53,7 +54,7 @@ def parseTaxiLogLine(logline):
     match = re.search(TAXI_LOG_PATTERN, logline)
 
     if match is None:
-        return "fail"
+        return { 'key':'fail'}
     else:
         return {
     'medallion'            : match.group(1),
@@ -94,12 +95,18 @@ print "Reading file at path:", file_path,"\n"
 line = file.readline()
 
 print parseTaxiLogLine(line)
-ranking = {}
+counts = {}
 while line:
     line = file.readline()
     x = parseTaxiLogLine(line)
-    ranking[x['key']]
-    print
+    #print x
+    counts[x['key']] = counts.get(x['key'], 0) + 1
+
+ranking = collections.OrderedDict(sorted(counts.items()))
+for k, v in ranking.iteritems(): print k, v
+
+
+
 
 
 
