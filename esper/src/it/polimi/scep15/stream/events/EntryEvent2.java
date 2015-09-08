@@ -1,8 +1,7 @@
 package it.polimi.scep15.stream.events;
 
+public class EntryEvent2 {
 
-public class EntryEvent {
-	
 	private String medallion;
 	private String hackLicense;
 	private long pickupDate;
@@ -153,4 +152,5 @@ public class EntryEvent {
 	public void setTs(long ts) {
 		this.ts = ts;
 	}
+	
 }
