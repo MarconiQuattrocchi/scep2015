@@ -1,5 +1,4 @@
 package it.polimi.scep15.stream.events;
-import java.util.Date;
 import java.util.List;
 
 
@@ -8,8 +7,8 @@ public class RankEvent {
 	private List<String> rank;
 	private List<Long> counts;
 	
-	private Date pickupDate;
-	private Date dropoffDate;
+	private long pickupDate;
+	private long dropoffDate;
 	private long ts;
 	
 	public List<String> getRank() {
@@ -28,16 +27,16 @@ public class RankEvent {
 		this.counts = counts;
 	}
 	
-	public Date getPickupDate() {
+	public long getPickupDate() {
 		return pickupDate;
 	}
-	public void setPickupDate(Date pickupDate) {
+	public void setPickupDate(long pickupDate) {
 		this.pickupDate = pickupDate;
 	}
-	public Date getDropoffDate() {
+	public long getDropoffDate() {
 		return dropoffDate;
 	}
-	public void setDropoffDate(Date dropoffDate) {
+	public void setDropoffDate(long dropoffDate) {
 		this.dropoffDate = dropoffDate;
 	}
 	

@@ -1,12 +1,11 @@
 package it.polimi.scep15.stream.events;
 
-import java.util.Date;
 
 public class CountEvent {
 	
 	private long count;
-	private Date pickupDate;
-	private Date dropoffDate;
+	private long pickupDate;
+	private long dropoffDate;
 	private long ts;
 	private String routeCode;
 	
@@ -17,16 +16,16 @@ public class CountEvent {
 		this.count = count;
 	}
 	
-	public Date getPickupDate() {
+	public long getPickupDate() {
 		return pickupDate;
 	}
-	public void setPickupDate(Date pickupDate) {
+	public void setPickupDate(long pickupDate) {
 		this.pickupDate = pickupDate;
 	}
-	public Date getDropoffDate() {
+	public long getDropoffDate() {
 		return dropoffDate;
 	}
-	public void setDropoffDate(Date dropoffDate) {
+	public void setDropoffDate(long dropoffDate) {
 		this.dropoffDate = dropoffDate;
 	}
 	public long getTs() {
