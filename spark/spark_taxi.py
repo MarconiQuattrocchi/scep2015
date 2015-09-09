@@ -227,8 +227,8 @@ def createContext(host, port, outputPath1, outputPath2):
                                  start_cell_id      = "%s.%s"%(trip.pickup_latitude_cell, trip.pickup_longitude_cell),
                                  end_cell_id        = "%s.%s"%(trip.dropoff_latitude_cell, trip.dropoff_longitude_cell),
                                  #QUERY2
-                                 start_cell_id_2      = "%s.%s"%(trip.pickup_latitude_cell_2, trip.pickup_longitude_cell_2),
-                                 end_cell_id_2        = "%s.%s"%(trip.dropoff_latitude_cell_2, trip.dropoff_longitude_cell_2),
+                                 start_cell_id_2    = "%s.%s"%(trip.pickup_latitude_cell_2, trip.pickup_longitude_cell_2),
+                                 end_cell_id_2      = "%s.%s"%(trip.dropoff_latitude_cell_2, trip.dropoff_longitude_cell_2),
                                  fare_amount        = trip.fare_amount,
                                  tip_amount         = trip.tip_amount,
                                  medallion          = trip.medallion))
@@ -242,7 +242,7 @@ def createContext(host, port, outputPath1, outputPath2):
 #    tripsByCellsAndWindows.checkpoint(120)
 
     ###QUERY1
-    tripsByCellsAndWindowsForCount = firstWindowedData.map(lambda trip: ((trip.start_cell_id, trip.end_cell_id), (trip.pickup_datetime, trip.dropoff_datetime)))
+    tripsByCellsAndWindowsForCount = firstWindowedData.map(lambda trip: ((trip.start_cell_id, trip.end_cell_id), (trip.pickup_datetime, trip.dropoff_datetime))).cache()
 
     tripCountsByCells = tripsByCellsAndWindowsForCount.transform(lambda rdd: rdd.map(lambda (k,v): (k, 1)).reduceByKey(lambda x, y: x + y))
 
@@ -251,12 +251,12 @@ def createContext(host, port, outputPath1, outputPath2):
     tripMaxDropoffBycell = tripsByCellsAndWindowsForCount.transform(lambda rdd: rdd.reduceByKey(lambda a,b: max_by_dropoff_date(a,b)).map(lambda (k,v): (k,("%s"%v[0],"%s"%v[1]))))
 
 
-    tripCountsByCells.pprint()
-    tripMaxDropoffBycell.pprint()
+#    tripCountsByCells.pprint()
+#    tripMaxDropoffBycell.pprint()
 
     completeSet = tripCountsByCells.join(tripMaxDropoffBycell).map(lambda (k, v): (v[0],(k, v))).transform(lambda rdd: rdd.sortBy(lambda (count, v): (count, v[0]) ,ascending=False).map(lambda (count, tuple):tuple))
 
-#PRINT
+
 #    completeSet.map(lambda x: ('COMPLETE_SET',x)).pprint()
     #EXPECTED SOMETHING LIKE: (('169.152', '168.152'), ('2015-07-17 12:00:55', '2015-07-17 12:02:55'))
 
@@ -268,27 +268,26 @@ def createContext(host, port, outputPath1, outputPath2):
 
 
     ####QUERY2
-    tripsByCellsAndWindowsForProfit = firstWindowedData.map(lambda trip: (trip.start_cell_id_2, (trip.pickup_datetime, trip.dropoff_datetime, trip.fare_amount + trip.tip_amount)))
+    tripsByCellsAndWindowsForProfit = firstWindowedData.map(lambda trip: (trip.start_cell_id_2, (trip.pickup_datetime, trip.dropoff_datetime, trip.fare_amount + trip.tip_amount))).cache()
 
     tripsByMedallionsAndWindowsForEmptyTaxies = secondWindowedData.map(lambda trip: (trip.medallion, (trip.pickup_datetime, trip.dropoff_datetime, trip.end_cell_id_2))).cache()
 
-    #profitByCell = tripsByCellsAndWindowsForProfit.transform(lambda rdd: rdd.reduceByKey(lambda a,b: max_by_dropoff_date(a,b)).map(lambda (k,v): (k,(median(v[2]),v[0],v[1]))))
 
     medianProfitByCell = tripsByCellsAndWindowsForProfit.transform(lambda rdd: rdd.map(lambda (k,v): (k,v[2])).groupByKey().map(lambda (k,v): (k,median(v))))
     lastProfitEventByCell = tripsByCellsAndWindowsForProfit.transform(lambda rdd: rdd.map(lambda (k,v): (k,(v[0],v[1]))).reduceByKey(lambda a,b: max_by_dropoff_date(a,b)).map(lambda (k,v): (k,("%s"%v[0],"%s"%v[1]))))
 
-    profitCompleteByCell = lastProfitEventByCell.join(medianProfitByCell)
+    profitCompleteByCell = lastProfitEventByCell.join(medianProfitByCell).transform(lambda rdd: rdd.sortBy(lambda (k,v):v[1], ascending=False))
 
-    profitCompleteByCell.map(lambda x: ('PROFIT_BY_CELL',x)).pprint()
+#    profitCompleteByCell.map(lambda x: ('PROFIT_BY_CELL',x)).pprint()
 
     lastTripsByMedallion = tripsByMedallionsAndWindowsForEmptyTaxies.transform(lambda rdd: rdd.reduceByKey(lambda a,b: max_by_dropoff_date(a,b)).sortByKey(False))
 #   lastTripsByMedallion.pprint()
     countEmptyTaxiesByCells = lastTripsByMedallion.transform(lambda rdd: rdd.map(lambda (k,v):(v[2],(v[0],v[1],1))).reduceByKey(lambda a,b: max_by_dropoff_and_sum(a,b)).map(lambda (k,v):(k,("%s"%v[0],"%s"%v[1],v[2]))).sortBy(lambda (k,v):v[2], ascending=False))
-    countEmptyTaxiesByCells.map(lambda x: ('EMPTY',x)).pprint()
+#    countEmptyTaxiesByCells.map(lambda x: ('EMPTY',x)).pprint()
 
-    profitabilityByCell = profitCompleteByCell.join(countEmptyTaxiesByCells).transform(lambda rdd: rdd.map(lambda (cell,(((pickup_prof,dropoff_prof),prof),(pickup_empty,dropoff_empty,empty_count))): (cell, (empty_count, prof, prof/empty_count, pickup_empty, dropoff_empty, pickup_prof, dropoff_prof))).sortBy(lambda x: x[3], ascending=False))
+    profitabilityByCell = profitCompleteByCell.join(countEmptyTaxiesByCells).transform(lambda rdd: rdd.map(lambda (cell,(((pickup_prof,dropoff_prof),prof),(pickup_empty,dropoff_empty,empty_count))): (cell, (empty_count, prof, prof/empty_count, pickup_empty, dropoff_empty, pickup_prof, dropoff_prof))).sortBy(lambda x: x[1][2], ascending=False))
 #    profitabilityByCell = profitCompleteByCell.join(countEmptyTaxiesByCells)
-    profitabilityByCell.map(lambda x: ('PROFITABILITY',x)).pprint()
+#    profitabilityByCell.map(lambda x: ('PROFITABILITY',x)).pprint()
 
     topTenProfitableAreas = profitabilityByCell.transform(lambda rdd: rdd.zipWithIndex().filter(lambda (k,v): v<10).map(lambda (k,v):k))
 
@@ -297,30 +296,30 @@ def createContext(host, port, outputPath1, outputPath2):
 
 
     def updateFunc(new_values, last_list):
+#        print("LAST-LIST: %s" % last_list)
         if last_list is None:
             last_ranking = []
         else:
-            last_ranking = last_list[2:] #ignore pickup_datetime and dropoff_datetime
-
-#        print("NEW-VALUES: %s" % new_values)
+            last_ranking = last_list[1] #ignore pickup_datetime and dropoff_datetime
 
         if len(new_values) > 0:
             new_ranking = [k for (k,v) in new_values[0]]
         else:
             new_ranking = []
 
-        counts = "OLD: %s --> NEW: %s" % (last_ranking, new_ranking)
+        comparison = "OLD: %s --> NEW: %s" % (last_ranking, new_ranking)
 
         new = "%s" % new_values
-        print("updateFunc: "+counts)
+#        print("updateFunc: "+comparison)
         #
         paddedOldRanking =  [i for i,j in list(itertools.izip_longest(last_ranking, range(10)))]
         diff = [j for i, j in zip(paddedOldRanking, new_ranking) if i != j]
         if len(diff)>0:
-            print("new elements: %s (new ranking: %s)" % (diff, new_ranking))
+#            print("new elements: %s (new ranking: %s)" % (diff, new_ranking))
             new_datez = [(v[1][1],v[1][0]) for (k,v) in new_values[0] if k in diff]
-            print("NEW_DATEZ: %s"%new_datez)
+#            print("NEW_DATEZ: %s"%new_datez)
             new_dates = max(new_datez)
+
             new_result = [(new_dates[1],new_dates[0]), new_ranking]
             #write the new ranking on file outputPath2 only when there is a change in any of the the top N positions
             new_string=formatResult(new_result)
@@ -329,18 +328,18 @@ def createContext(host, port, outputPath1, outputPath2):
         else:
             new_result=last_list
         # write the comparison between old and new status on file outputPath1 every time updateFunc is invoked
-        with open(outputPath1, 'a') as f:
-            f.write(counts + "\n")
+#        with open(outputPath1, 'a') as f:
+#            f.write(comparison + "\n")
         return new_result
 
 
 
-#TODO COMPLETARE PER QUERY 2
+
     def updateFunc2(new_values, last_list):
         if last_list is None:
             last_ranking = []
         else:
-            last_ranking = last_list[2:] #ignore pickup_datetime and dropoff_datetime
+            last_ranking = last_list[1] #ignore pickup_datetime and dropoff_datetime
 
 #        print("NEW-VALUES: %s" % new_values)
 
@@ -349,28 +348,31 @@ def createContext(host, port, outputPath1, outputPath2):
         else:
             new_ranking = []
 
-        counts = "OLD: %s --> NEW: %s" % (last_ranking, new_ranking)
+#        comparison = "OLD: %s --> NEW: %s" % (last_ranking, new_ranking)
 
         new = "%s" % new_values
-        print("updateFunc: "+counts)
+#        print("updateFunc: "+comparison)
         #
         paddedOldRanking =  [i for i,j in list(itertools.izip_longest(last_ranking, range(10)))]
         diff = [j for i, j in zip(paddedOldRanking, new_ranking) if i != j]
         if len(diff)>0:
-            print("new elements: %s (new ranking: %s)" % (diff, new_ranking))
-            new_datez = [(v[1][1],v[1][0]) for (k,v) in new_values[0] if k in diff]
-            print("NEW_DATEZ: %s"%new_datez)
+#            print("new elements: %s (new ranking: %s)" % (diff, new_ranking))
+            new_datez = [(v[4],v[3]) for (k,v) in new_values[0] if k in diff]
+#            print("NEW_DATEZ: %s"%new_datez)
             new_dates = max(new_datez)
+            new_ranking_complete = [(k, v[0], v[1], v[2]) for (k,v) in new_values[0]]
+            new_result_print = [(new_dates[1],new_dates[0]), new_ranking_complete]
             new_result = [(new_dates[1],new_dates[0]), new_ranking]
+#            print("NEW_RESULT: %s" % new_result)
             #write the new ranking on file outputPath2 only when there is a change in any of the the top N positions
-            new_string=formatResult(new_result)
+            new_string=formatResult(new_result_print)
             with open(outputPath2, 'a') as f:
                 f.write(new_string + "\n\n")
         else:
             new_result=last_list
         # write the comparison between old and new status on file outputPath1 every time updateFunc is invoked
-        with open(outputPath1, 'a') as f:
-            f.write(counts + "\n")
+#        with open(outputPath1, 'a') as f:
+#            f.write(comparison + "\n")
         return new_result
 
 
@@ -381,11 +383,13 @@ def createContext(host, port, outputPath1, outputPath2):
 
     rankingProfitability = topTenProfitableAreas.transform(lambda rdd:rdd.map(lambda x:('ranking2',x)).groupByKey().map(lambda x : (x[0], list(x[1]))))
 #u    rankingTripCount = sortedTripCounts.transform(lambda rdd:rdd.map(lambda (k,v):('ranking',v)).groupByKey().map(lambda x : (x[0], list(x[1]))))
-    rankingTripCount.pprint()
-    rankingProfitability.pprint()
+#    rankingTripCount.pprint()
+#    rankingProfitability.pprint()
     #invoke updateFunc for each time window
     status = rankingTripCount.updateStateByKey(updateFunc)
     status.pprint()
+    status2 = rankingProfitability.updateStateByKey(updateFunc2)
+    status2.pprint()
 
 
     return ssc
