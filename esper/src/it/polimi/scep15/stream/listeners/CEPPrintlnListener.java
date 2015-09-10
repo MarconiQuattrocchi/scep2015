@@ -1,23 +1,25 @@
 package it.polimi.scep15.stream.listeners;
 
+import java.util.logging.Logger;
+
 import com.espertech.esper.client.EventBean;
 import com.espertech.esper.client.UpdateListener;
 
 public class CEPPrintlnListener implements UpdateListener {
-
+	private static Logger logger = Logger.getLogger("log");
 	public void update(EventBean[] newData, EventBean[] oldData) {
+		
 		for(EventBean e : newData){
-			System.out.println(e.getUnderlying());
+			logger.info(e.getUnderlying().toString());
 		}
 		
-		System.out.println("");
+		logger.info("");
 
 		for(EventBean e : oldData){
-			System.out.println(e.getUnderlying());
+			logger.info(e.getUnderlying().toString());
 		}
 		
-		System.out.println("");
-
+		logger.info("");
 	}
 	
 }
