@@ -1,12 +1,15 @@
 package it.polimi.scep15.stream.listeners;
 import java.util.List;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import com.espertech.esper.client.EventBean;
 import com.espertech.esper.client.UpdateListener;
 
 
 public class Query1OutputListener implements UpdateListener {
+
+	private static Logger logger = Logger.getLogger("log");
 
 	@SuppressWarnings("unchecked")
 	public void update(EventBean[] newData, EventBean[] oldData) {
@@ -20,7 +23,7 @@ public class Query1OutputListener implements UpdateListener {
 				res+=rank.get(i)+"("+counts.get(i)+"), ";
 			}
 			res+=System.currentTimeMillis()-(Long)r.get("ts");
-			System.out.println("[Query1] "+res);
+			logger.info("[Query1] "+res);
 		}
 	}
 	

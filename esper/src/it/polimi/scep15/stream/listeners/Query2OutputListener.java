@@ -3,11 +3,14 @@ package it.polimi.scep15.stream.listeners;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.logging.Logger;
 
 import com.espertech.esper.client.EventBean;
 import com.espertech.esper.client.UpdateListener;
 
 public class Query2OutputListener implements UpdateListener {
+
+	private static Logger logger = Logger.getLogger("log");
 
 	@SuppressWarnings("unchecked")
 	@Override
@@ -23,7 +26,7 @@ public class Query2OutputListener implements UpdateListener {
 		for(int i=0; i<newData.length; i++){
 			Map<String, Object> e = (Map<String, Object>) newData[i].getUnderlying();
 			if(areas.contains((String)e.get("area"))){
-				System.out.println("ERROR");
+				;//logger.info("ERROR");
 			}
 			areas.add((String)e.get("area"));
 			res+=", <"+e.get("area")+", "+e.get("empties")+", "+numberFormat.format(e.get("profit"))+", "+numberFormat.format(e.get("profitability"))+">";
@@ -39,7 +42,7 @@ public class Query2OutputListener implements UpdateListener {
 		}
 		
 		res=maxpd+", "+maxdd+res+", "+(now-maxts);
-		System.out.println("[Query2] "+res);	
+		logger.info("[Query2] "+res);	
 	}
 
 }

@@ -9,7 +9,11 @@ import it.polimi.scep15.stream.listeners.Query1OutputListener;
 import it.polimi.scep15.stream.listeners.Query2OutputListener;
 import it.polimi.scep15.utils.SourceDataListener;
 
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.logging.FileHandler;
+import java.util.logging.Logger;
+import java.util.logging.SimpleFormatter;
 
 import com.espertech.esper.client.Configuration;
 import com.espertech.esper.client.EPAdministrator;
@@ -29,6 +33,26 @@ public class StreamMain {
 	
 	
 	public static void main(String[] args) throws InterruptedException {
+		
+		
+		 Logger logger = Logger.getLogger("log");  
+		 FileHandler fh;  
+
+		    try {  
+
+		        // This block configure the logger with handler and formatter  
+		        fh = new FileHandler("rankings.txt");  
+		        logger.addHandler(fh);
+		        SimpleFormatter formatter = new SimpleFormatter();  
+		        fh.setFormatter(formatter);  
+
+
+		    } catch (SecurityException e) {  
+		        e.printStackTrace();  
+		    } catch (IOException e) {  
+		        e.printStackTrace();  
+		    }  
+
 		
 		Configuration cepConfig = null;
 		String query11 = null;
