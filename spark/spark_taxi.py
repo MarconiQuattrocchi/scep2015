@@ -209,6 +209,12 @@ def createContext(host, port, outputPath1, outputPath2):
     print("Creating new context")
     if os.path.exists(outputPath1):
         os.remove(outputPath1)
+
+    with open(outputPath1, 'w+') as f:
+        f.write("QUERY 1 OUTPUT: " + "\n\n")
+    with open(outputPath2, 'w+') as f:
+        f.write("QUERY 2 OUTPUT: " + "\n\n")
+
     sc = SparkContext(appName="SparkStreamingTaxiQueries")
     ssc = StreamingContext(sc, 0.5)
 
@@ -323,7 +329,7 @@ def createContext(host, port, outputPath1, outputPath2):
             new_result = [(new_dates[1],new_dates[0]), new_ranking]
             #write the new ranking on file outputPath2 only when there is a change in any of the the top N positions
             new_string=formatResult(new_result)
-            with open(outputPath2, 'a') as f:
+            with open(outputPath2, 'a+') as f:
                 f.write(new_string + "\n\n")
         else:
             new_result=last_list
@@ -366,7 +372,7 @@ def createContext(host, port, outputPath1, outputPath2):
 #            print("NEW_RESULT: %s" % new_result)
             #write the new ranking on file outputPath2 only when there is a change in any of the the top N positions
             new_string=formatResult(new_result_print)
-            with open(outputPath2, 'a') as f:
+            with open(outputPath2, 'a+') as f:
                 f.write(new_string + "\n\n")
         else:
             new_result=last_list
