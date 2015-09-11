@@ -42,6 +42,7 @@ import sys
 #import ast
 import itertools
 
+import time
 import datetime
 import re
 
@@ -104,9 +105,9 @@ def max_by_dropoff_and_sum(a,b):
 
 
 WINDOW_LENGTH_1 = 15
-SLIDING_INTERVAL_1 = 1
+SLIDING_INTERVAL_1 = 2
 WINDOW_LENGTH_2 = 30
-SLIDING_INTERVAL_2 = 1
+SLIDING_INTERVAL_2 = 2
 
 
 TAXI_LOG_PATTERN = '^(\S+),(\S+),(\d{4}\-\d{2}\-\d{2}\s\d{2}\:\d{2}:\d{2}),(\d{4}\-\d{2}\-\d{2}\s\d{2}\:\d{2}:\d{2}),(\d+),(\d+\.\d+),(\-?\d+\.\d+),(\-?\d+\.\d+),(\-?\d+\.\d+),(\-?\d+\.\d+),(\S+),(\d+\.\d+),(\d+\.\d+),(\d+\.\d+),(\d+\.\d+),(\d+\.\d+),(\d+\.\d+)'
@@ -164,7 +165,8 @@ def parseTaxiLogLine(logline):
     mta_tax                 = float(match.group(14)),
     tip_amount              = float(match.group(15)),
     tolls_amount            = float(match.group(16)),
-    total_amount            = float(match.group(17))
+    total_amount            = float(match.group(17)),
+    read_time               = time.time()
          ), 1)
 
 
@@ -199,6 +201,9 @@ def formatResult(resultList):
     res = "%s,%s"%(timestamps[0],timestamps[1])
     for i in flat_cells:
         res="%s,%s"%(res,i)
+    if len(resultList)>2:
+        delay=resultList[2]
+        res="%s,%s"%(res,delay)
     return res
 
 
@@ -237,13 +242,16 @@ def createContext(host, port, outputPath1, outputPath2):
                                  end_cell_id_2      = "%s.%s"%(trip.dropoff_latitude_cell_2, trip.dropoff_longitude_cell_2),
                                  fare_amount        = trip.fare_amount,
                                  tip_amount         = trip.tip_amount,
-                                 medallion          = trip.medallion))
+                                 medallion          = trip.medallion,
+                                 read_time          = trip.read_time
+                                 ))
 
 
 
     firstWindowedData = queryFormat.window(WINDOW_LENGTH_1, SLIDING_INTERVAL_1).cache()
     secondWindowedData = queryFormat.window(WINDOW_LENGTH_2, SLIDING_INTERVAL_2).cache()
 
+    firstWindowedTimes = firstWindowedData.map(lambda trip: ((trip.start_cell_id, trip.end_cell_id),time.time())).reduceByKey(lambda x,y: max(x,y))
 
 #    tripsByCellsAndWindows.checkpoint(120)
 
@@ -322,14 +330,16 @@ def createContext(host, port, outputPath1, outputPath2):
         diff = [j for i, j in zip(paddedOldRanking, new_ranking) if i != j]
         if len(diff)>0:
 #            print("new elements: %s (new ranking: %s)" % (diff, new_ranking))
-            new_datez = [(v[1][1],v[1][0]) for (k,v) in new_values[0] if k in diff]
-#            print("NEW_DATEZ: %s"%new_datez)
+            new_datez = [(v[1][1],v[1][0], v[2]) for (k,v) in new_values[0] if k in diff]
+            print("NEW_DATEZ: %s"%new_datez)
             new_dates = max(new_datez)
+            print("NEW_DATES[2]: %s"% new_dates[2])
+            new_result = [(new_dates[1],new_dates[0]), new_ranking, time.time() - new_dates[2]]
+            print("NEW_RESULT: %s"%new_result)
 
-            new_result = [(new_dates[1],new_dates[0]), new_ranking]
             #write the new ranking on file outputPath2 only when there is a change in any of the the top N positions
             new_string=formatResult(new_result)
-            with open(outputPath2, 'a+') as f:
+            with open(outputPath1, 'a+') as f:
                 f.write(new_string + "\n\n")
         else:
             new_result=last_list
@@ -384,14 +394,13 @@ def createContext(host, port, outputPath1, outputPath2):
 
 
 
-
-    rankingTripCount = topTenTrips.transform(lambda rdd:rdd.map(lambda x:('ranking',x)).groupByKey().map(lambda x : (x[0], list(x[1]))))
+    topTenWithDelays = topTenTrips.join(firstWindowedTimes).map(lambda (k,v): (k, (v[0][0], v[0][1], v[1])))
+    rankingTripCount = topTenWithDelays.transform(lambda rdd:rdd.map(lambda x:('ranking',x)).groupByKey().map(lambda x : (x[0], list(x[1]))))
 
     rankingProfitability = topTenProfitableAreas.transform(lambda rdd:rdd.map(lambda x:('ranking2',x)).groupByKey().map(lambda x : (x[0], list(x[1]))))
-#u    rankingTripCount = sortedTripCounts.transform(lambda rdd:rdd.map(lambda (k,v):('ranking',v)).groupByKey().map(lambda x : (x[0], list(x[1]))))
-#    rankingTripCount.pprint()
-#    rankingProfitability.pprint()
-    #invoke updateFunc for each time window
+
+    topTenWithDelays.map(lambda x: ('CULOOO', x)).pprint()
+
     status = rankingTripCount.updateStateByKey(updateFunc)
     status.pprint()
     status2 = rankingProfitability.updateStateByKey(updateFunc2)
