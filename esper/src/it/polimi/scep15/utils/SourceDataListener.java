@@ -7,6 +7,7 @@ import it.polimi.scep15.stream.events.RankEvent;
 
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -17,7 +18,7 @@ public class SourceDataListener implements RemoteUpdateListener {
 	
 	private Executor ex = Executors.newFixedThreadPool(1);
 	private EPRuntime cepRT;
-
+	HashMap<String, String> map = new HashMap<String, String>();
 	@Override
 	public synchronized void update(String data) {
 		//System.out.println(i+") Received entry: "+data);
@@ -29,7 +30,7 @@ public class SourceDataListener implements RemoteUpdateListener {
 			final EntryEvent2 e2 = EntryParser.parseEntry2(data);
 			
 			//System.out.println(i+") Received entry: "+data);
-		
+			map.put(e2.getMedallion(), e2.getDropoffAreaCode());
 			if(cepRT!=null){
 				ex.execute(new Runnable(){
 					
@@ -64,6 +65,7 @@ public class SourceDataListener implements RemoteUpdateListener {
 
 	@Override
 	public void newConnection() {
+		map.clear();
 		generateEmptyRank(cepRT);		
 	}
 	
@@ -72,6 +74,17 @@ public class SourceDataListener implements RemoteUpdateListener {
 		r.setCounts(new ArrayList<Long>());
 		r.setRank(new ArrayList<String>());
 		cepRT.sendEvent(r);
+	}
+
+	@Override
+	public void endConnection() {
+		int i = 0;
+		for(String s : map.values()){
+			if(s.equals("(324.315)"))
+				i++;
+		}
+		
+		System.out.println("AAAAA: "+i);
 	}
 
 }
