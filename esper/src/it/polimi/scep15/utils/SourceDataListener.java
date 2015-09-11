@@ -78,13 +78,12 @@ public class SourceDataListener implements RemoteUpdateListener {
 
 	@Override
 	public void endConnection() {
-		int i = 0;
-		for(String s : map.values()){
-			if(s.equals("(324.315)"))
-				i++;
-		}
+	//	int i = 0;
+		//for(String s : map.values()){
+		//	if(s.equals("(324.315)"))
+			//	i++;
+		//}
 		
-		System.out.println("AAAAA: "+i);
 	}
 
 }
