@@ -3,8 +3,10 @@ package it.polimi.scep15.utils;
 import it.polimi.scep15.net.RemoteUpdateListener;
 import it.polimi.scep15.stream.events.EntryEvent;
 import it.polimi.scep15.stream.events.EntryEvent2;
+import it.polimi.scep15.stream.events.RankEvent;
 
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -58,6 +60,18 @@ public class SourceDataListener implements RemoteUpdateListener {
 
 	public void setCepRT(EPRuntime cepRT) {
 		this.cepRT = cepRT;
+	}
+
+	@Override
+	public void newConnection() {
+		generateEmptyRank(cepRT);		
+	}
+	
+	private static void generateEmptyRank(EPRuntime cepRT) {
+		RankEvent r = new RankEvent();
+		r.setCounts(new ArrayList<Long>());
+		r.setRank(new ArrayList<String>());
+		cepRT.sendEvent(r);
 	}
 
 }

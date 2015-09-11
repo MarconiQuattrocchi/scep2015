@@ -13,7 +13,7 @@ public class SocketDataReceiver implements Runnable {
 	
 	private RemoteUpdateListener listener;
     ServerSocket serverSocket;
-
+   
 	public RemoteUpdateListener getListener() {
 		return listener;
 	}
@@ -40,7 +40,7 @@ public class SocketDataReceiver implements Runnable {
 		    BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
 		) {
 		    String inputLine;
-		    
+		    listener.newConnection();
 		    while ((inputLine = in.readLine()) != null) {
 		    	if(!inputLine.equals(""))
 		    		listener.update(inputLine);
