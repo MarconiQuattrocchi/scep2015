@@ -18,6 +18,8 @@ public class Query1OutputListener implements UpdateListener {
 			Map<String, Object> r = (Map<String, Object>) e.getUnderlying();
 			String res=r.get("pickupDate")+", "+r.get("dropoffDate")+", ";
 			List<String> rank = (List<String>)r.get("currentRank");
+			if(rank.size()<10)
+				break;
 			List<Long> counts = (List<Long>)r.get("currentCounts");
 			for(int i =0; i<rank.size(); i++){
 				res+=rank.get(i)+"("+counts.get(i)+"), ";

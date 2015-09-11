@@ -10,7 +10,6 @@ import it.polimi.scep15.stream.listeners.Query2OutputListener;
 import it.polimi.scep15.utils.SourceDataListener;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.logging.FileHandler;
 import java.util.logging.Logger;
 import java.util.logging.SimpleFormatter;
@@ -24,17 +23,8 @@ import com.espertech.esper.client.EPStatement;
 
 public class StreamMain {
 	
-	private static void generateEmptyRank(EPRuntime cepRT) {
-		RankEvent r = new RankEvent();
-		r.setCounts(new ArrayList<Long>());
-		r.setRank(new ArrayList<String>());
-		cepRT.sendEvent(r);
-	}
-	
-	
 	public static void main(String[] args) throws InterruptedException {
-		
-		
+	
 		 Logger logger = Logger.getLogger("log");  
 		 FileHandler fh;  
 
@@ -142,7 +132,6 @@ public class StreamMain {
 		Query2OutputListener cepL24 = new Query2OutputListener();
 		cepStatement24.addListener(cepL24);	
 		
-		generateEmptyRank(cepRT);
 
 		SocketDataReceiver socketServer = new SocketDataReceiver();
 		SourceDataListener dataListener=new SourceDataListener();
