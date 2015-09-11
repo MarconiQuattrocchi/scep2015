@@ -11,8 +11,9 @@ import it.polimi.scep15.utils.SourceDataListener;
 
 import java.io.IOException;
 import java.util.logging.FileHandler;
+import java.util.logging.Formatter;
+import java.util.logging.LogRecord;
 import java.util.logging.Logger;
-import java.util.logging.SimpleFormatter;
 
 import com.espertech.esper.client.Configuration;
 import com.espertech.esper.client.EPAdministrator;
@@ -30,11 +31,14 @@ public class StreamMain {
 
 		    try {  
 
-		        // This block configure the logger with handler and formatter  
 		        fh = new FileHandler("rankings.txt");  
 		        logger.addHandler(fh);
-		        SimpleFormatter formatter = new SimpleFormatter();  
-		        fh.setFormatter(formatter);  
+		        fh.setFormatter(new Formatter(){
+					@Override
+					public String format(LogRecord record) {
+						return record.getMessage()+"\n";
+					}
+		        });  
 
 
 		    } catch (SecurityException e) {  
