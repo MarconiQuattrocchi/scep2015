@@ -2,6 +2,7 @@ package it.polimi.scep15.net;
 import it.polimi.scep15.utils.SourceDataListener;
 
 import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
@@ -11,7 +12,8 @@ import java.net.Socket;
 public class SocketDataReceiver implements Runnable {
 	
 	private RemoteUpdateListener listener;
-	
+    ServerSocket serverSocket;
+
 	public RemoteUpdateListener getListener() {
 		return listener;
 	}
@@ -22,9 +24,17 @@ public class SocketDataReceiver implements Runnable {
 
 	@Override
 	public void run() {
-		int port = 4343;
+		try {
+			serverSocket = new ServerSocket(4343);
+			loop();
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+	
+	public void loop(){
 		try ( 
-		    ServerSocket serverSocket = new ServerSocket(port);
 		    Socket clientSocket = serverSocket.accept();
 		    PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
 		    BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
@@ -35,6 +45,8 @@ public class SocketDataReceiver implements Runnable {
 		    	if(!inputLine.equals(""))
 		    		listener.update(inputLine);
 		    }
+		    loop();
+		    
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
