@@ -22,7 +22,7 @@ public class SocketDataReceiver implements Runnable {
 
 	@Override
 	public void run() {
-		
+		loop();
 	}
 	
 	public void loop(){
