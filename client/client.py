@@ -49,13 +49,19 @@ config = {}
 execfile("client.conf", config) 
 host = config["ip"]
 port = config["port"]
+file_path = config["file_path"]
+if host == "env":
+	host = os.environ['HOST_IP']
+        port = int(os.environ['HOST_PORT'])
+	file_path = os.environ['DATASET_PATH']
+
 delta_enabled = config["delta"]
 
 print "Initizialing connection to host:", host, "at port:",port
 
 s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 current_dir =  os.path.abspath(os.path.dirname(__file__))
-file_path = os.path.abspath(current_dir + "/"+config["file_path"])
+file_path = os.path.abspath(current_dir + "/"+file_path)
 
 s.connect((host,port))
 file = fileinput.input(file_path)
