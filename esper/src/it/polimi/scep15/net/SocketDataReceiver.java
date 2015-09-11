@@ -22,6 +22,10 @@ public class SocketDataReceiver implements Runnable {
 
 	@Override
 	public void run() {
+		
+	}
+	
+	public void loop(){
 		int port = 4343;
 		try ( 
 		    ServerSocket serverSocket = new ServerSocket(port);
@@ -35,6 +39,8 @@ public class SocketDataReceiver implements Runnable {
 		    	if(!inputLine.equals(""))
 		    		listener.update(inputLine);
 		    }
+		    loop();
+		    
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
