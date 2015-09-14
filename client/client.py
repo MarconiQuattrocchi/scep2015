@@ -80,7 +80,7 @@ while line:
  	if line:
  		entry=process_line(line)
  		ts = entry['dropoff_datetime']
- 		delta = (ts-old_ts).total_seconds()
+ 		delta = (ts-old_ts).total_seconds()/300
  		if delta > 0 and delta_enabled:
  			print "Waiting", delta, "for the next entry\n"
  			time.sleep(delta)
