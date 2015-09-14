@@ -45,6 +45,7 @@ public class SocketDataReceiver implements Runnable {
 		    	if(!inputLine.equals(""))
 		    		listener.update(inputLine);
 		    }
+		    listener.endConnection();
 		    loop();
 		    
 		} catch (Exception e) {

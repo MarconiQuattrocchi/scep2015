@@ -48,7 +48,7 @@ print "Loading configuration"
 config = {}
 execfile("client.conf", config) 
 host = config["ip"]
-port = config["port"]
+port = int(config["port"])
 file_path = config["file_path"]
 if host == "env":
 	host = os.environ['HOST_IP']
